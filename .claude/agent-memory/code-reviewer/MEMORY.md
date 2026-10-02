@@ -1,0 +1,1 @@
+- [Browser probes](reference_browser_probes.md) — running scratchpad puppeteer probes against dist/ (absolute pnpm-store imports, scrollReel hooks)

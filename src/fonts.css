@@ -1,0 +1,5 @@
+@font-face { font-family: 'Unbounded'; font-weight: 900; src: url(../fonts/unbounded-latin-900-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Unbounded'; font-weight: 500; src: url(../fonts/unbounded-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 500; src: url(../fonts/jetbrains-mono-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 700; src: url(../fonts/jetbrains-mono-latin-700-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Instrument Serif'; font-style: italic; font-weight: 400; src: url(../fonts/instrument-serif-latin-400-italic.woff2) format('woff2'); }

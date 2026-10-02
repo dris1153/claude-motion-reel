@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Claude — Motion Reel</title>
+  <link rel="stylesheet" href="src/fonts.css" />
+  <style>
+    html, body { margin: 0; background: #050506; color: #F2EDE4; font: 500 13px 'JetBrains Mono', monospace; }
+    main { min-height: 100vh; box-sizing: border-box; display: grid; place-content: center; gap: 14px; padding: 16px; }
+    canvas { display: block; width: min(calc(100vw - 32px), calc((100vh - 96px) * 16 / 9)); aspect-ratio: 16 / 9; background: #0B0B0E; }
+    .bar { display: flex; gap: 14px; align-items: center; }
+    button { cursor: pointer; font: inherit; letter-spacing: 1px; color: #0B0B0E; background: #FF5B2E; border: 0; padding: 9px 16px; border-radius: 999px; }
+    input[type=range] { flex: 1; accent-color: #FF5B2E; cursor: pointer; }
+    #time { min-width: 56px; text-align: right; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <main>
+    <canvas width="1920" height="1080"></canvas>
+    <div class="bar">
+      <button id="play">▶ Play</button>
+      <input id="scrub" type="range" min="0" max="14.98" step="0.0166667" value="0" aria-label="Scrub timeline" />
+      <span id="time">0.00s</span>
+    </div>
+  </main>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

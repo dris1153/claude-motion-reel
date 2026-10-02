@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Claude — Motion Reel</title>
+  <meta name="description" content="A 15-second motion design reel you scrub by scrolling. Every frame is a function of time." />
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="src/fonts.css" />
+  <style>
+    :root { --ink: #0B0B0E; --bone: #F2EDE4; --clay: #FF5B2E; --bar: #050506; --mono: 'JetBrains Mono', ui-monospace, monospace; }
+    html, body { margin: 0; background: var(--bar); color: var(--bone); font: 700 11px/1 var(--mono); letter-spacing: 2px; text-transform: uppercase; }
+    button, a { font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
+    button { background: none; border: 0; padding: 0; }
+    button:not(:disabled), a { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--clay); outline-offset: 4px; }
+
+    #stage { height: 100svh; display: grid; place-items: center; overflow: hidden; }
+    /* The frame is the canvas's letterboxed box; overlays inside it scale with it via cqw units. */
+    .frame { position: relative; width: min(100%, calc(100svh * 16 / 9)); aspect-ratio: 16 / 9; container-type: inline-size; }
+    .frame canvas { display: block; width: 100%; height: 100%; background: var(--ink); }
+
+    /* Hidden until its script is ready, so there is no flash of a static cover with dead buttons. */
+    .cover { visibility: hidden; position: absolute; left: 4cqw; top: 50%; width: 50cqw; transform: translateY(-50%); text-transform: none; letter-spacing: 0; }
+    .cover-ready .cover { visibility: visible; }
+    .kicker { margin: 0 0 2.2cqw; font: 700 max(10px, 0.72cqw)/1 var(--mono); letter-spacing: 0.25em; text-transform: uppercase; color: var(--clay); }
+    .cover h1 { margin: 0; font-weight: 400; }
+    .cover h1 .t1 { display: block; font: 900 4.1cqw/1.08 'Unbounded', sans-serif; letter-spacing: -0.01em; }
+    .cover h1 .t2 { display: block; font: italic 400 5.6cqw/1.02 'Instrument Serif', serif; color: var(--clay); }
+    .meta { margin: 2.2cqw 0 0; font: 500 max(10px, 0.78cqw)/1.4 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.6; }
+    .ctas { display: flex; align-items: center; gap: 2cqw; margin-top: 2.6cqw; font: 700 max(10px, 0.72cqw)/1 var(--mono); letter-spacing: 0.2em; text-transform: uppercase; }
+    .cta-scroll { display: inline-flex; align-items: center; gap: 0.8cqw; }
+    .cta-scroll::after { content: ''; width: 1px; height: 1.6cqw; background: var(--bone); animation: nudge 1.6s ease-in-out infinite; }
+    .cta-watch, .caption-watch { padding: 0.9cqw 1.4cqw; border-radius: 999px; background: var(--clay); color: var(--ink); }
+    @keyframes nudge { 50% { translate: 0 0.4cqw; } }
+
+    .captions { position: absolute; left: 4cqw; bottom: 6.5cqw; width: 23cqw; text-transform: none; letter-spacing: 0; }
+    .caption { position: absolute; left: 0; bottom: 0; width: 100%; box-sizing: border-box; visibility: hidden; opacity: 0;
+      padding: 1.2cqw 1.4cqw; background: rgb(11 11 14 / 0.8); backdrop-filter: blur(8px); border-left: 2px solid var(--clay); }
+    .caption-num { margin: 0; font: 700 max(9px, 0.62cqw)/1 var(--mono); letter-spacing: 0.25em; color: var(--clay); }
+    .caption h2 { margin: 0.6cqw 0 0.5cqw; font: italic 400 max(18px, 1.9cqw)/1.05 'Instrument Serif', serif; }
+    .caption-line { margin: 0; font: 500 max(11px, 0.8cqw)/1.55 'Unbounded', sans-serif; opacity: 0.85; }
+    .caption ul { display: flex; flex-wrap: wrap; gap: 0.4cqw; margin: 0.9cqw 0 0; padding: 0; list-style: none; }
+    .caption li { padding: 0.3cqw 0.6cqw; border: 1px solid rgb(242 237 228 / 0.3); border-radius: 999px; font: 700 max(8px, 0.55cqw)/1 var(--mono); letter-spacing: 0.15em; text-transform: uppercase; }
+    .caption-watch { margin-top: 0.9cqw; font: 700 max(10px, 0.7cqw)/1 var(--mono); letter-spacing: 0.2em; text-transform: uppercase; }
+
+    .rail { position: fixed; right: 18px; top: 50%; transform: translateY(-50%); display: flex; gap: 12px; z-index: 2; }
+    .rail ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; order: -1; }
+    .rail button { display: flex; align-items: center; justify-content: flex-end; gap: 10px; opacity: 0.45; transition: opacity 0.2s; }
+    .rail button:hover, .rail button:focus-visible, .rail button[aria-current] { opacity: 1; }
+    .rail button[aria-current] .num { color: var(--clay); }
+    .rail .name { max-width: 0; overflow: hidden; white-space: nowrap; transition: max-width 0.3s; }
+    .rail button:hover .name, .rail button:focus-visible .name { max-width: 240px; }
+    .rail-track { width: 2px; background: rgb(242 237 228 / 0.2); }
+    .rail-fill { display: block; height: 100%; background: var(--clay); transform-origin: top; transform: scaleY(0); }
+
+    .sound, .cinema-close { position: fixed; top: 14px; right: 18px; z-index: 2; padding: 8px 14px; border: 1px solid rgb(242 237 228 / 0.35); border-radius: 999px; }
+    .sound[aria-pressed='true'] { background: var(--clay); color: var(--ink); border-color: var(--clay); }
+
+    .cinema-close, .cinema-status { display: none; }
+    .cinema .cinema-close { display: block; }
+    .cinema-loading .cinema-status { display: block; position: absolute; inset: 0; margin: auto; height: 1em; text-align: center; }
+    .cinema { overflow: hidden; }
+    .cinema .cover, .cinema .captions, .cinema .rail, .cinema .sound { visibility: hidden; }
+
+    @media (max-width: 900px) { .rail { display: none; } }
+    @media (prefers-reduced-motion: reduce) { .cta-scroll::after { animation: none; } }
+  </style>
+</head>
+<body>
+  <main id="stage">
+    <div class="frame">
+      <canvas aria-label="Motion reel: scroll to play"></canvas>
+      <section class="cover" aria-labelledby="cover-title">
+        <div class="cover-block"><p class="kicker">Motion reel — 2026</p></div>
+        <div class="cover-block"><h1 id="cover-title"><span class="t1">Every frame,</span> <span class="t2">a function of time.</span></h1></div>
+        <div class="cover-block"><p class="meta">15s · 7 chapters · 2,646 points · 0 keyframes</p></div>
+        <div class="cover-block ctas"><button type="button" class="cta-scroll">Scroll to play</button><button type="button" class="cta-watch">Watch with sound · 15s</button></div>
+      </section>
+      <div class="captions" aria-live="polite"></div>
+      <p class="cinema-status" role="status">Loading sound…</p>
+    </div>
+  </main>
+  <button type="button" class="cinema-close" aria-label="Close and return to scrolling">Close ✕</button>
+  <script type="module" src="src/scroll-main.js"></script>
+</body>
+</html>
